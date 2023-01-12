@@ -1,0 +1,104 @@
+#!/bin/sh
+
+mkdir -p /tmp/covers
+
+PCTLFLAGS='--player=spotify,vlc,firefox,%any'
+
+function process_image {
+    image=$(echo "$2" | awk -F "/" '{print $NF}')
+    path="/tmp/covers/$image"
+
+    if ! [ -f $path ]; then
+        curl -o $path --silent $2
+    fi
+
+    if [[ $1 == "color" ]]; then
+        crop_region="10x240+0+0"
+        if [[ $3 == "top" ]]; then
+            crop_region="240x40+0+0"
+        elif [[ $3 == "right" ]]; then
+            crop_region="40x240+200+0"
+        elif [[ $3 == "bottom" ]]; then
+            crop_region="240x40+0+200"
+        elif [[ $3 == "left" ]]; then
+            crop_region="40x240+0+0"
+        fi
+
+        color=$(convert "$path" -resize 240x240! xwd:- |\
+                convert -crop "$crop_region" xwd:- xwd:- |\
+                convert -resize 1x1!\
+                    -format "%[fx:int(255*r+.5)],%[fx:int(255*g+.5)],%[fx:int(255*b+.5)]"\
+                    xwd:- info:-
+                )
+        echo "rgba(${color},.35)"
+    else
+        echo $image
+    fi
+}
+
+function mdsub {
+    playerctl $PCTLFLAGS --follow metadata --format "{{ $1 }}"
+}
+
+cmds=("art|color|position|loop|length|playing|toggle|previous|next|shuffle")
+if [[ "|${cmds[*]}|" =~ "|$1|" ]]; then
+    if [[ $1 == "position" ]]; then
+        if [[ $# = 2 ]]; then
+            if [[ $2 == "readable" ]]; then
+                echo "$(playerctl $PCTLFLAGS -s position || echo '0')" | xargs -I{} date -u +%Mm%Ss -d@{}
+            else
+                playerctl $PCTLFLAGS position $2
+            fi
+        else
+            echo "$(playerctl $PCTLFLAGS -s position || echo '0')"
+        fi
+    elif [[ $1 == "loop" ]]; then
+        if [[ $# = 2 ]]; then
+            if [[ $2 == 'toggle' ]]; then
+                current=$(playerctl loop)
+                if [[ $current == 'None' ]]; then
+                    playerctl $PCTLFLAGS loop Playlist
+                elif [[ $current == 'Track' ]]; then
+                    playerctl $PCTLFLAGS loop None
+                elif [[ $current == 'Playlist' ]]; then
+                    playerctl $PCTLFLAGS loop Track
+                fi
+            else
+                playerctl $PCTLFLAGS loop $2
+            fi
+        else
+            playerctl $PCTLFLAGS --follow loop
+        fi
+    elif [[ $1 == "shuffle" ]]; then
+        if [[ $# = 2 ]]; then
+            if [[ $2 == 'toggle' ]]; then
+                current=$(playerctl shuffle)
+                if [[ $current == 'Off' ]]; then
+                    playerctl $PCTLFLAGS shuffle On
+                elif [[ $current == 'On' ]]; then
+                    playerctl $PCTLFLAGS shuffle Off
+                fi
+            fi
+        else
+            playerctl $PCTLFLAGS --follow shuffle
+        fi
+    elif [[ $1 == "length" ]]; then
+        if [[ $# = 2 ]] && [[ $2 == "readable" ]]; then
+            mdsub "mpris:length" | while read -r line; do echo "$line / 1000000" | bc -l | xargs -I{} date -u +%Mm%Ss -d@{}; done
+        else
+            mdsub "mpris:length" | while read -r line; do if [[ $line == '' ]]; then echo '0'; else echo "$line / 1000000" | bc -l; fi; done
+        fi
+    elif [[ $1 == "playing" ]]; then
+        playerctl $PCTLFLAGS --follow status
+    elif [[ $1 == "toggle" ]]; then
+        playerctl $PCTLFLAGS play-pause
+    elif [[ $1 == "previous" ]]; then
+        playerctl $PCTLFLAGS previous
+    elif [[ $1 == "next" ]]; then
+        playerctl $PCTLFLAGS next
+    else
+        mdsub "mpris:artUrl" | while read -r line; do process_image $1 $line $2; done
+    fi
+else
+    mdsub $1
+fi

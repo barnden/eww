@@ -1,0 +1,60 @@
+(deflisten cover :initial "" "./scripts/music art")
+(deflisten highlight_top :initial "" "./scripts/music color top")
+(deflisten highlight_right :initial "" "./scripts/music color right")
+(deflisten highlight_bottom :initial "" "./scripts/music color bottom")
+(deflisten highlight_left :initial "" "./scripts/music color left")
+(deflisten artist :initial "" "./scripts/music artist")
+(deflisten track :initial "" "./scripts/music title")
+(deflisten album :initial "" "./scripts/music album")
+(deflisten length :initial "0" "./scripts/music length")
+(deflisten length_readable :initial "0m00s" "./scripts/music length readable")
+(deflisten status :initial "" "./scripts/music playing")
+(deflisten loop :initial "稜" "./scripts/music loop")
+(deflisten shuffle :initial "劣" "./scripts/music shuffle")
+(defpoll position :interval "1s" :initial "0" "./scripts/music position")
+(defpoll position_readable :interval "1s" :initial "0m00s" "./scripts/music position readable")
+
+(defwidget music []
+    (box :class "music" :orientation "v" :space-evenly false :vexpand false :hexpand false
+        (box :class "art" :width 240 :height 240 :vexpand false :hexpand false
+            (box :class "container" :style "box-shadow: 12px 0 ${music_blur_radius} -4px ${highlight_right}, -12px 0 ${music_blur_radius} -4px ${highlight_left}, 0 12px ${music_blur_radius} -4px ${highlight_bottom}, 0 -12px ${music_blur_radius} -4px ${highlight_top};" :halign "center"
+                (box :class "cover" :vexpand false :hexpand false :style "background-image: url('file:///tmp/covers/${cover}');")
+            )
+        )
+
+        (box :class "info" :orientation "v" :spacing 20 :space-evenly false :vexpand false :hexpand false
+            (label :halign "center" :class "track" :wrap true :limit-width 30 :text track)
+            (label :halign "center" :class "artist" :wrap true :limit-width 30 :text artist)
+
+            (box :class "controls" :halign "center" :orientation "h" :space-evenly false :vexpand false :hexpand false
+                (button :class "shfl" :onclick "./scripts/music shuffle toggle"
+                    :style {shuffle == "Off" ? "color: #D4DDF2;" : "color: #648280;"}
+                    {shuffle == "Off" ? "劣" : "咽"}
+                )
+                (button :class "prev" :onclick "./scripts/music previous" "玲")
+                (button :class "play" :onclick "./scripts/music toggle" {status == "Playing" ? "" : "喇"})
+                (button :class "next" :onclick "./scripts/music next" "怜")
+                (button :class "loop" :onclick "./scripts/music loop toggle"
+                    :style {loop == "None" ? "color: #D4DDF2;" : "color: #648280;"}
+                    {loop == "None" ? "稜" : loop == "Playlist" ? "凌" : "綾"}
+                )
+            )
+
+            (centerbox :class "bar" :halign "center" :vexpand false :hexpand false
+                (label :halign "center" :class "position" :text position_readable)
+                (scale :min 0 :max length :active true :value position :onchange "./scripts/music position {}")
+                (label :halign "center" :class "length" :text length_readable)
+            )
+        )
+    )
+)
+
+(defwindow music :stacking "bg" :focusable false :wm-ignore false :windowtype "normal"
+    :geometry (
+        geometry
+        :x "80%" :y "63%"
+        :width 500 :height 500
+    )
+
+    (music)
+)

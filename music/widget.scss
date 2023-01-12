@@ -1,0 +1,67 @@
+* {
+    all: unset;
+    font-family: "FantasqueSansMono Nerd Font Mono", monospace;
+}
+
+.music {
+    background: #16161D;
+    border-radius: 8px;
+    padding: 5px;
+
+    .art {
+        padding: 10px;
+
+        .container {
+            background-size: contain;
+            border-radius: 6px;
+        }
+
+        .cover {
+            background-size: contain;
+            background-repeat: no-repeat;
+            min-width: 240px;
+            min-height: 240px;
+            border-radius: 6px;
+        }
+    }
+
+    .info {
+        margin: 20px;
+
+        .track {
+            font-weight: bold;
+            font-size: 28px;
+        }
+
+        .artist {
+            opacity: .8;
+            font-size: 18px;
+        }
+
+        .controls {
+            font-size: 50px;
+
+            > * {
+                padding: 8px 12px;
+            }
+        }
+
+        .bar scale {
+            trough {
+                all: unset;
+                background-color: hsla(222, 19%, 89%, .1);
+                border-radius: 8px;
+                min-height: 8px;
+                min-width: 330px;
+                margin: 0 12px;
+
+                highlight {
+                    all: unset;
+                    border-radius: inherit;
+                    background-color: hsla(350, 43%, 45%, .85);
+                }
+            }
+        }
+    }
+
+}

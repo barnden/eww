@@ -1,0 +1,3 @@
+(include "./music/widget.yuck")
+
+(defvar music_blur_radius "14px")
