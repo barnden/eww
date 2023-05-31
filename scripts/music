@@ -1,14 +1,13 @@
 #!/bin/sh
 
-mkdir -p /home/brandon/.cache/eww/covers
+mkdir -p $HOME/.cache/eww/covers
 
 PCTLFLAGS='--player=spotify,vlc,firefox,%any'
-HOME=$(getent passwd "$USER" | awk -F: '{print $(NF-1)}')
 function process_image {
     image=$(echo "$2" | awk -F "/" '{print $NF}')
     path="$HOME/.cache/eww/covers/$image"
 
-    curl -C - -o $path --silent $2
+    curl -C - -o $path --silent $2 --connect-timeout 3 -m 3
 
     if [[ $1 == "color" ]]; then
         crop_region="10x240+0+0"

@@ -1,0 +1,14 @@
+(deflisten volume "./scripts/audio volume")
+(deflisten icon "./scripts/audio icon")
+
+(defwidget volume []
+    (eventbox
+        :onscroll "./scripts/audio {} 5"
+        :onclick "./scripts/audio toggle"
+        :cursor "pointer"
+
+        (box :hexpand false :halign "fill"
+            (label :text "${icon} ${volume}")
+        )
+    )
+)

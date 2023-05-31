@@ -1,0 +1,100 @@
+#!/bin/bash
+
+shopt -s lastpipe
+xrandr | grep " connected " | awk '{ print $1 }' | readarray -t MONITORS
+MONITOR=${MONITOR:=${MONITORS[0]}}
+
+cmds=("set|listen|up|down")
+
+function get_index {
+    # get_index(1: value, 2...: array)
+    # returns index of first matching element, or -1 if not exists
+    val=$1
+    shift
+    arr=("$@")
+    for i in "${!arr[@]}"; do
+        if [[ "${arr[$i]}" == "$val" ]]; then
+            echo $i
+            return 0
+        fi
+    done
+
+    echo -1
+    return 1
+}
+
+if [[ "|${cmds[*]}|" =~ "|$1|" ]]; then
+    if [[ $1 == "set" ]]; then
+        for i in "${MONITORS[@]}"; do
+            bspc desktop -f $i:^${2:-1}
+        done
+    elif [[ $1 == "up" || $1 == "down" ]]; then
+        desktop=$(bspc query -D -d focused --names)
+        id=1
+        step=-1
+        if [[ $1 == "up" ]]; then
+            step=1
+        fi
+
+        for monitor in "${MONITORS[@]}"; do
+            bspc query -D -m $monitor --names | readarray -t DESKTOPS
+            temp=$(get_index $desktop "${DESKTOPS[@]}")
+
+            if [[ $? -ne 0 ]]; then
+                unset DESKTOPS
+                continue
+            fi
+
+            id=$((($temp + $step + ${#DESKTOPS[@]}) % ${#DESKTOPS[@]} + 1))
+            unset DESKTOPS
+        done
+
+        for monitor in "${MONITORS[@]}"; do
+            bspc desktop -f $monitor:^$id
+        done
+
+    elif [[ $1 == "listen" ]]; then
+        bspc query -D -m $MONITOR --names | readarray -t DESKTOPS
+        empty="○"
+        active="●"
+        occupied="◎"
+        bspc subscribe desktop_focus node_add node_remove 2> /dev/null |
+        while read -r line; do
+            echo $line | readarray -d' ' -t event_args
+
+            monitor=$(bspc query -M -m ${event_args[1]} --names)
+
+            if [[ $monitor -ne $MONITOR ]]; then
+                continue
+            fi
+
+            desktop=$(bspc query -D -d ${event_args[2]} --names)
+
+            # Check if eww daemon running
+            if [[ $(eww ping) -ne 0 ]]; then
+                continue
+            fi
+
+            id=$(get_index "$desktop" "${DESKTOPS[@]}")
+            # Check if get_index valid
+            if [[ $? -ne 0 ]]; then
+                continue
+            fi
+
+            for i in "${!DESKTOPS[@]}"; do
+                icon=$empty
+                if [[ $i -eq $id ]]; then
+                    icon=$active
+                elif [[ $(bspc query -N -d ${DESKTOPS[$i]} | wc -l) -gt 0 ]]; then
+                    icon=$occupied
+                fi
+
+                eww update "desktop$((i + 1))=$icon"
+            done
+
+            echo "update"
+
+            unset event_args
+        done
+    fi
+fi

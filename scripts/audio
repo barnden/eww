@@ -1,0 +1,40 @@
+#!/bin/bash
+
+function get_volume {
+    pactl get-sink-volume 0 | awk '{ printf "%s",$5 } END { print "" }'
+}
+
+function get_icon {
+    volume=$(get_volume)
+
+    [[ $(pactl get-sink-mute 0 | awk '{ print $2 }') == "no" ]] && icon="墳" || icon="婢"
+
+    echo $icon
+}
+
+cmds=("toggle|icon|volume|up|down")
+if [[ "|${cmds[*]}|" =~ "|$1|" ]]; then
+    if [[ $1 == "up" || $1 == "down" ]]; then
+        step=${2:-1}
+
+        if [[ $1 == "down" ]]; then
+            step=$((-1 * step))
+        fi
+
+        pactl set-sink-volume 0 "+$step%"
+    elif [[ $1 == "volume" ]]; then
+        get_volume
+
+        pactl subscribe | grep --line-buffered "sink" | while read -r line; do
+            get_volume
+        done
+    elif [[ $1 == "icon" ]]; then
+        get_icon
+
+        pactl subscribe | grep --line-buffered "sink" | while read -r line; do
+            get_icon
+        done
+    elif [[ $1 == "toggle" ]]; then
+        pactl set-sink-mute 0 toggle
+    fi
+fi

@@ -1,0 +1,13 @@
+(defvar left_class "normal")
+
+(deflisten desktops "./scripts/desktop listen")
+(defvar desktop1 "●")
+(defvar desktop2 "○")
+(defvar desktop3 "○")
+(defvar desktop4 "○")
+(defvar desktop5 "○")
+(defpoll date :interval "1s" "date +'(%a) %d.%m.%y %Hh%M'")
+
+(include "./bar/desktop.yuck")
+(include "./bar/audio.yuck")
+

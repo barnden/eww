@@ -1,1 +1,6 @@
-@import "./music/widget.scss"
+@import "./music/widget.scss";
+@import "./bar/widget.scss";
+
+* {
+    all: unset;
+}

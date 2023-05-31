@@ -1,17 +1,12 @@
 #!/bin/sh
 
-
-function decorate_windows {
-    if [[ "$1" =~ "Reloaded config successfully" ]]; then
-        xdo id -N "eww-music" | xargs -I{} bspc config -n {} border_width 0
-    fi
-}
-
-
 function listener {
     eww logs | while read -r line; do decorate_windows "$line"; done
 }
 
-bspc rule -a "eww-music" state=floating layer=below &
-eww open music &
-listener &
+# bspc rule -a "eww-music" state=floating layer=below &
+bspc rule -a "eww-music" state=floating layer=above  &
+bspc rule -a "eww-bar" state=floating layer=above  &
+eww kill ; eww open bar && eww update "HOME=$HOME" &
+# eww open music &
+

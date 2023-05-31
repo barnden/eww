@@ -1,0 +1,20 @@
+(defwidget desktop_button [number markup]
+    (eventbox :cursor "pointer"
+        (button :onclick "./scripts/desktop set ${number}"
+            (label :markup markup)
+        )
+    )
+)
+
+(defwidget desktops []
+    (eventbox
+        :onscroll "./scripts/desktop {}"
+        (box :class "desktops ${desktops}" :orientation "h" :space-evenly false :vexpand false :hexpand false :valign "fill"
+            (desktop_button :number 1 :markup desktop1)
+            (desktop_button :number 2 :markup desktop2)
+            (desktop_button :number 3 :markup desktop3)
+            (desktop_button :number 4 :markup desktop4)
+            (desktop_button :number 5 :markup desktop5)
+        )
+    )
+)

@@ -1,9 +1,6 @@
-* {
-    all: unset;
-    font-family: "FantasqueSansMono Nerd Font Mono", monospace;
-}
-
 .music {
+    font-family: "FantasqueSansMono Nerd Font Mono", monospace;
+
     background: #16161D;
     border-radius: 8px;
     padding: 5px;
@@ -44,13 +41,13 @@
             }
         }
 
-        .bar scale {
+        .player_bar scale {
             trough {
                 all: unset;
                 background-color: hsla(222, 19%, 89%, .1);
                 border-radius: 8px;
                 min-height: 8px;
-                min-width: 330px;
+                min-width: 200px;
                 margin: 0 12px;
 
                 highlight {

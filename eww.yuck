@@ -1,4 +1,56 @@
-(include "./music/widget.yuck")
-
-(defpoll home :interval "5m" "getent passwd \"$USER\" | awk -F: '{print $(NF-1)}'")
 (defvar music_blur_radius "14px")
+(defvar HOME "/home/brandon")
+
+(include "./music/widget.yuck")
+(include "./bar/widget.yuck")
+
+; (deflisten dummy `xdo id -N "eww-music" | xargs -I{} bspc config -n {} border_width 0`)
+
+(defwindow bar :stacking "bg" :focusable false :wm-ignore true :windowtype "dock"
+    :geometry (
+        geometry
+        :anchor "bottom center"
+        :y -10
+        :width "95%"
+        :height 23
+    )
+
+    (box :class "bar"
+         :orientation "h"
+         :space-evenly false
+         :vexpand false :valign "fill"
+         :hexpand true :halign "fill"
+
+        (centerbox :orientation "h" :hexpand true :halign "fill"
+            (box :spacing 0 :space-evenly false :hexpand true :halign "begin"
+                (desktops)
+                (music)
+            )
+
+            (box :spacing 0 :space-evenly false :hexpand true :halign "center"
+                (label :class "date" :text date)
+            )
+
+            (box :spacing 0 :space-evenly false :hexpand true :halign "end"
+                (volume)
+            )
+        )
+    )
+)
+
+(defwindow music :wm-ignore true :windowtype "dock"
+    :geometry (geometry
+        :anchor "bottom left"
+        :x "5%" :y "-46px"
+    )
+
+    (box :class "music" :orientation "v" :space-evenly false :vexpand false :hexpand false
+        (art)
+
+        (box :class "info" :orientation "v" :spacing 20 :space-evenly false :vexpand false :hexpand false
+            (title)
+            (player_bar)
+            (controls)
+        )
+    )
+)

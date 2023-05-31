@@ -13,11 +13,12 @@
 (defpoll position :interval "1s" :initial "0" "./scripts/music position")
 (defpoll position_readable :interval "1s" :initial "0m00s" "./scripts/music position readable")
 (defpoll remaining_readable :interval "1s" :initial "0m00s" "./scripts/music remaining")
+(defvar music_reveal false)
 
 (defwidget art []
     (box :class "art" :width 240 :height 240 :vexpand false :hexpand false
         (box :class "container" :style "box-shadow: 12px 0 ${music_blur_radius} -4px ${highlight_right}, -12px 0 ${music_blur_radius} -4px ${highlight_left}, 0 12px ${music_blur_radius} -4px ${highlight_bottom}, 0 -12px ${music_blur_radius} -4px ${highlight_top};" :halign "center"
-            (box :class "cover" :vexpand false :hexpand false :style "background-image: url('file://${home}/.cache/eww/covers/${cover}');")
+            (box :class "cover" :vexpand false :hexpand false :style "background-image: url('file://${HOME}/.cache/eww/covers/${cover}');")
         )
     )
 )
@@ -29,7 +30,7 @@
             {shuffle == "Off" ? "劣" : "咽"}
         )
         (button :class "prev" :onclick "./scripts/music previous" "玲")
-        (button :class "play" :onclick "./scripts/music toggle" {status == "Playing" ? "" : "喇"})
+        (button :class "play" :onclick "./scripts/music toggle" {status == "Playing" ? "" : "契"})
         (button :class "next" :onclick "./scripts/music next" "怜")
         (button :class "loop" :onclick "./scripts/music loop toggle"
             :style {loop == "None" ? "color: #D4DDF2;" : "color: #648280;"}
@@ -46,27 +47,38 @@
 )
 
 (defwidget player_bar []
-    (centerbox :class "bar" :halign "center" :vexpand false :hexpand false
+    (centerbox :class "player_bar" :halign "center" :vexpand false :hexpand false
         (label :halign "center" :class "position" :text position_readable)
         (scale :min 0 :max length :active true :value position :onchange "./scripts/music position {}")
         (label :halign "center" :class "remaining" :text "-${remaining_readable}")
     )
 )
 
-(defwindow music :stacking "bg" :focusable false :wm-ignore false :windowtype "normal"
-    :geometry (
-        geometry
-        :x "80%" :y "63%"
-        :width 500 :height 500
+(defwidget muse []
+    (eventbox
+        :onhover "eww update music_reveal=true"
+        :onhoverlost "eww update music_reveal=false"
+        :cursor "pointer"
+
+        (box :orientation "h" :spacing 0 :space-evenly false :halign "start"
+            (button :onclick "./scripts/music reveal"
+                (label :halign "center" :text "${artist} - ${track}")
+            )
+        )
     )
+)
 
-    (box :class "music" :orientation "v" :space-evenly false :vexpand false :hexpand false
-        (art)
+(defwidget music []
+    (eventbox :cursor "pointer"
+        (box :orientation "h" :spacing 0 :space-evenly false :halign "start"
+            (checkbox
+                :onchecked "eww open music"
+                :onunchecked "eww close music"
 
-        (box :class "info" :orientation "v" :spacing 20 :space-evenly false :vexpand false :hexpand false
-            (title)
-            (player_bar)
-            (controls)
+                (box :orientation "h" :spacing 0 :space-evenly false :halign "start"
+                    (label :text "${artist}${artist != '' && track != '' ? ' - ' : ''}${track}")
+                )
+            )
         )
     )
 )
